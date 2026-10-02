@@ -1,14 +1,20 @@
-#boardgame{
-    display: grid;
-    grid-template-columns: repeat(16, 60px);
-    grid-template-rows: repeat(9, 60px);
-    gap:2px;
+#boardgame {
+  display: grid;
+  grid-template-columns: repeat(16, 60px);
+  grid-template-rows: repeat(9, 60px);
+  gap: 2px;
 }
 
 .cell {
-    background: #ddd;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 30px;
+  background: #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.active {
+  transform: scale(0.95);
 }
