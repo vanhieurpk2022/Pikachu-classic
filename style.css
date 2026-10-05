@@ -1,20 +1,53 @@
 #boardgame {
   display: grid;
-  grid-template-columns: repeat(16, 60px);
-  grid-template-rows: repeat(9, 60px);
+  grid-template-columns: repeat(16, 50px);
+  grid-template-rows: repeat(9, 50px);
   gap: 2px;
+  width: max-content;
+  margin: 0 auto;
 }
 
 .cell {
-  background: #ddd;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 30px;
+  font-size: 25px;
   cursor: pointer;
-  transition: all 0.2s;
+  user-select: none;
+  box-sizing: border-box;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain; 
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
 }
 
-.active {
-  transform: scale(0.95);
+.cell:hover {
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
 }
+
+.cell.active {
+  transform: scale(0.95);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+  border-color: #f39c12;
+  z-index: 2;
+}
+
+/* Ô đã ăn: ẩn đi nhưng vẫn giữ chỗ trong lưới */
+.cell.matched {
+  opacity: 0;
+  pointer-events: none;
+}
+
+
+.seg {
+  position: absolute;
+  background: black;
+  pointer-events: none;
+}
+
+.seg.up    { left: 50%; top: 0;    width: 2px; height: calc(50% + 1px); transform: translateX(-50%); }
+.seg.down  { left: 50%; bottom: 0; width: 2px; height: calc(50% + 1px); transform: translateX(-50%); }
+.seg.left  { top: 50%; left: 0;    height: 2px; width: calc(50% + 1px); transform: translateY(-50%); }
+.seg.right { top: 50%; right: 0;   height: 2px; width: calc(50% + 1px); transform: translateY(-50%); }
