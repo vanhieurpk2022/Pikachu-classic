@@ -30,15 +30,20 @@ boardGame.addEventListener("click", (e) => {
   });
 
   if (selected.length < 2) return;
+  let x = selected[0].row;
+  let y = selected[0].col;
+  let x2 = selected[1].row;
+  let y2 = selected[1].col;
 
-  if (isSameValue(selected[0].row, selected[0].col, selected[1].row, selected[1].col, grid)) {
+  if (isSameValue(x, y, x2, y2, grid)) {
 
-    arr = findPath(selected[0].row, selected[0].col, selected[1].row, selected[1].col, grid);
-    console.log(arr);
+    arr = findPath(x, y, x2, y2, grid, grid[x][y]);
     if (!arr) return;
-    clearCells(selected[0].row, selected[0].col, selected[1].row, selected[1].col, grid);
-
+    clearCells(x, y, x2, y2, grid);
     defineGraph(arr, boardGame)
+
+    // render lại
+
   }
 
 
