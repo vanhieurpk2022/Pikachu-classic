@@ -6,7 +6,7 @@ const DIRECTIONS = [
     { row: 0, col: 1 },
     { row: 0, col: -1 }
 ]
-export default function findPath(startRow, startCol, targetRow, targetCol, grid, value) {
+export function findPath(startRow, startCol, targetRow, targetCol, grid, value) {
     const queue = [createInitialState(startRow, startCol)];
     while (queue.length > 0) {
         const current = queue.shift();

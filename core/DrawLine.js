@@ -37,3 +37,4 @@ export default function defineGraph(arr, parent) {
 export function removeLine(parent) {
     parent.querySelectorAll(".seg").forEach(s => s.remove());
 }
+
