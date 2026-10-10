@@ -6,14 +6,14 @@ const DIRECTIONS = [
     { row: 0, col: 1 },
     { row: 0, col: -1 }
 ]
-export function findPath(startRow, startCol, targetRow, targetCol, grid, value) {
+export function findPath(startRow, startCol, targetRow, targetCol, grid, value, mode) {
     const queue = [createInitialState(startRow, startCol)];
     while (queue.length > 0) {
         const current = queue.shift();
         if (isTarget(current, targetRow, targetCol)) {
             return current.path;
         }
-        const nextStates = getNextStates(current, grid, value);
+        const nextStates = getNextStates(current, grid, value, mode);
 
         for (const state of nextStates) {
             queue.push(state);
@@ -39,7 +39,7 @@ function isTarget(state, targetRow, targetCol) {
     return (state.row === targetRow && state.col === targetCol);
 }
 
-function getNextStates(current, grid, value) {
+function getNextStates(current, grid, value, mode) {
     const states = [];
     for (const direction of DIRECTIONS) {
 
@@ -51,7 +51,7 @@ function getNextStates(current, grid, value) {
             continue;
         }
 
-        if (!aroundEmpty(nextRow, nextCol, grid, value)) {
+        if (!aroundEmpty(nextRow, nextCol, grid, value, mode)) {
             continue;
         }
 
@@ -99,6 +99,9 @@ function checkEdge(x, y, grid) {
     return x >= 0 && x < grid.length && y >= 0 && y < grid[0].length;
 }
 
-function aroundEmpty(x, y, grid, value) {
+function aroundEmpty(x, y, grid, value, mode) {
+    if (mode === "3") {
+        return grid[x][y] == 0 || grid[x][y] == value;
+    }
     return grid[x][y] == 0 || grid[x][y] == -1 || grid[x][y] == value;
 }

@@ -1,4 +1,4 @@
-import { findPath } from "./DirectionProcessor.js";
+import { findPath } from "./directionProcessor.js";
 
 export function shuffle(arr) {
     for (let i = 0; i < arr.length - 1; i++) {
@@ -79,7 +79,7 @@ export function renderImages(grid, board) {
     }
 }
 
-export function hint(grid) {
+export function hint(grid, mode) {
     const pieces = [];
 
 
@@ -98,8 +98,12 @@ export function hint(grid) {
             const p2 = pieces[b];
 
             if (p1.type !== p2.type) continue;
-
-            const re = findPath(p1.row, p1.col, p2.row, p2.col, grid, p1.type);
+            let re = null;
+            if (mode === "3") {
+                re = findPath(p1.row, p1.col, p2.row, p2.col, grid, p1.type, mode);
+            } else {
+                re = findPath(p1.row, p1.col, p2.row, p2.col, grid, p1.type);
+            }
             if (re) {
                 return re;
             }
@@ -110,7 +114,7 @@ export function hint(grid) {
 }
 
 
-function hasValidMove(grid) {
+function hasValidMove(grid, mode) {
     const pieces = [];
 
 
@@ -129,21 +133,30 @@ function hasValidMove(grid) {
             const p2 = pieces[b];
 
             if (p1.type !== p2.type) continue;
-
-            if (findPath(p1.row, p1.col, p2.row, p2.col, grid, p1.type)) {
-                return true;
+            let path = null;
+            if (mode === '3') {
+                let path = findPath(p1.row, p1.col, p2.row, p2.col, grid, p1.type, mode);
+                if (path) {
+                    return true;
+                }
+            } else {
+                path = findPath(p1.row, p1.col, p2.row, p2.col, grid, p1.type);
+                if (path) {
+                    return true;
+                }
             }
+
         }
     }
 
     return false;
 }
 
-export function checkShuffle(grid) {
+export function checkShuffle(grid, mode) {
     let tries = 0;
     const MAX_TRIES = 100;
 
-    while (!hasValidMove(grid) && tries < MAX_TRIES) {
+    while (!hasValidMove(grid, mode) && tries < MAX_TRIES) {
         shuffeMiddleGame(grid);
         tries++;
     }
