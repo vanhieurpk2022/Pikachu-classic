@@ -38,3 +38,7 @@ export function removeLine(parent) {
     parent.querySelectorAll(".seg").forEach(s => s.remove());
 }
 
+
+function popupMenuWinner() {
+
+}

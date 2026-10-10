@@ -1,29 +1,52 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="./css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.css" integrity="sha512-x9WwyMYBnlXMNQ6kQ/Lyzu1NqIhLQKL5Oq6xByfXuRj7s9CskyCbLv/1IjqzJmXwFXWr0ov6jBV7Qbc0hh9nHg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <title>PiKachu cổ điển</title>
-  </head>
 
-  <body>
-    <main class="container-fluid d-flex justify-content-center align-items-center" style="background-image: url(./Resources/bg1.png); min-height: 100vh; background-size: cover; background-repeat: no-repeat">
-      <div class="menu container d-flex flex-column bg-secondary px-5 py-3" >
-        <h1 class="text-center mb-3 ">Màn 1</h1>
-        <div id="boardgame" class="mb-5">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="./css/bootstrap.min.css" />
+  <title>PiKachu cổ điển</title>
+</head>
 
-        </div>
-        <div class="d-flex justify-content-center mt-auto">
-          <button id="hint" class="btn btn-warning px-5 rounded-5 shadow-lg me-2" style="font-size: 24px">Gợi ý</button>
-          <button id="shuffle" class="btn btn-warning px-5 rounded-5 shadow-lg me-2" style="font-size: 24px">Xáo</button>
-          <button class="btn btn-warning px-5 rounded-5 shadow-lg" style="font-size: 24px" onclick="window.location.href = `index.html`">Quay lại</button>
-        </div>
+<body>
+  <main id="maingame" class=" container-fluid position-relative d-flex justify-content-center align-items-center"
+    style="background-image: url(./Resources/bg1.png); min-height: 100vh; background-size: cover; background-repeat: no-repeat">
+    <div class="menu container d-flex flex-column bg-secondary px-5 py-3">
+      <h1 class="text-center mb-3 ">Màn 1</h1>
+      <div class="progress" role="progressbar" aria-label="Thời gian còn lại" aria-valuenow="25" aria-valuemin="0"
+        aria-valuemax="100" style="height: 13px">
+        <div id="progressbar" class="progress-bar bg-warning" style="width: 100%"></div>
+
       </div>
-    </main>
-    <script src="js/bootstrap.min.js"></script>
-    <script type="module" src="./core/main.js"></script>
-  </body>
+      <div class="d-flex align-items-center justify-content-center ">
+        <span id="timeplay">20:00</span>
+      </div>
+      <div id="boardgame" class="mb-3">
+
+      </div>
+      <div class="d-flex justify-content-center mt-auto">
+        <button id="hint"
+          class="btn btn-warning btn-hint d-inline-flex align-items-center justify-content-center border-0 shadow me-2"
+          title="Gợi ý" aria-label="Gợi ý">
+          <img src="Resources/hintchecker-removebg-preview.png" width="28" height="28" alt="">
+        </button>
+        <button id="shuffle"
+          class="btn btn-warning btn-hint d-inline-flex align-items-center justify-content-center border-0 shadow me-2"><img
+            src="Resources/shuffle.png" width="28" height="28" alt=""></button>
+      </div>
+      <div class="d-flex align-items-center justify-content-center mt-5">
+        <button class="btn btn-warning px-5 rounded-5 shadow-lg" style="font-size: 24px"
+          onclick="window.location.href = `menu.html`">Quay lại</button>
+      </div>
+
+
+    </div>
+
+    </div>
+  </main>
+  <script src="js/bootstrap.min.js"></script>
+  <script type="module" src="./core/main.js"></script>
+</body>
+
 </html>

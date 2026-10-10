@@ -161,3 +161,35 @@ export function checkWinner(grid) {
     }
     return true;
 }
+
+export function showResultPopup(isWin, id) {
+    document.getElementById(id)?.remove();
+    const title = isWin ? "Bạn đã thắng" : "Bạn đã thua";
+    const nextBtn = isWin
+        ? `<button id="btn-next" class="btn btn-link text-dark text-decoration-none d-block mx-auto fs-4">Màn tiếp theo</button>`
+        : "";
+
+    id.insertAdjacentHTML("beforeend", `
+    <div id="result-overlay"
+         class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75"
+         style="z-index: 1050;">
+      <div class="bg-warning border border-dark border-3 text-center p-4"
+           style="width: 500px; max-width: 90vw; min-height: 450px; border-radius: 28px; font-family: 'Patrick Hand', sans-serif;">
+        <h3 class="mb-5" style="font-size: 48px;">${title}</h3>
+        ${nextBtn}
+        <button id="btn-replay-menu" class="btn btn-link text-dark text-decoration-none d-block mx-auto fs-4">Chơi lại</button>
+        <button id="btn-back-menu" class="btn btn-link text-dark text-decoration-none d-block mx-auto fs-4">Quay lại</button>
+      </div>
+    </div>
+  `);
+
+    // Gắn sự kiện sau khi chèn
+    document.getElementById("btn-next")?.addEventListener("click", () => {
+        const mode = Number(new URLSearchParams(location.search).get("mode") ?? 1);
+        location.href = `init-grid.html?mode=${mode + 1}`;
+    });
+    document.getElementById("btn-replay-menu").addEventListener("click", () => location.reload());
+    document.getElementById("btn-back-menu").addEventListener("click", () => location.href = "menu.html");
+}
+
+
