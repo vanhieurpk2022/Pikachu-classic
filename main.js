@@ -7,13 +7,16 @@ let timer = null;
 let onBoardClick = null;
 let onHintClick = null;
 let onShuffleClick = null;
-
+let renderTimer = null;
+let forward = null;
+let lazerTimer = null;
+let lazerStopTimer = null;
+let lazerNextTimer = null;
 const getHtml = document.getElementById("result-overlay");
 
 function whenGameStart() {
-
+  let useTime = false;
   const boardGame = document.getElementById("boardgame");
-  const maingame = document.getElementById("maingame");
 
 
   // shuffle
@@ -31,7 +34,8 @@ function whenGameStart() {
   getHint.removeEventListener("click", onHintClick);
   getShuffle.removeEventListener("click", onShuffleClick);
   clearInterval(timer);
-
+  stopLevel4Timer();
+  stopLevel5Timer();
 
 
   let selected = [];
@@ -55,9 +59,12 @@ function whenGameStart() {
     };
     selected.push(item);
 
-    if (gameMode.mode === 4) {
-      showImage(item.row, item.col, grid, boardGame);
+    if (!useTime) {
+      if (gameMode.mode === 4) {
+        showImage(item.row, item.col, grid, boardGame);
+      }
     }
+
 
     if (selected.length < 2) return;
     const [a, b] = selected;
@@ -97,10 +104,13 @@ function whenGameStart() {
       }
     } else {
       if (gameMode.mode === 4) {
-        setTimeout(() => {
-          hideImage(a.row, a.col, boardGame);
-          hideImage(b.row, b.col, boardGame);
-        }, 600);
+        if (!useTime) {
+          setTimeout(() => {
+            hideImage(a.row, a.col, boardGame);
+            hideImage(b.row, b.col, boardGame);
+          }, 600);
+        }
+
       }
     }
 
@@ -108,6 +118,10 @@ function whenGameStart() {
     winner = checkWinner(grid);
 
     if (winner) {
+      if (gameMode.mode === 5) {
+        stopLevel5Timer();
+      }
+
       clearInterval(timer);
       popUpShowWinner(gameMode.mode, true, getHtml);
     }
@@ -121,7 +135,8 @@ function whenGameStart() {
       case 3:
         blockGravity(grid);
         break;
-
+      case 4:
+        break;
 
     }
   };
@@ -175,8 +190,6 @@ function whenGameStart() {
   getShuffle.addEventListener("click", onShuffleClick);
 
 
-  // timer
-
   function setProgress(percent) {
     bar.style.width = percent + "%";
     progress.setAttribute("aria-valuenow", Math.round(percent));
@@ -200,18 +213,103 @@ function whenGameStart() {
     setProgress(Math.max(timePercent, 0));
     numberOfTime.textContent = caculateTime(timerPlay - elapse);
     if (elapse >= timerPlay) {
+      if (gameMode.mode === 5) {
+        stopLevel5Timer();
+      }
       popUpShowWinner(gameMode.mode, false, getHtml);
     }
 
 
   }, 1000);
 
+
+  if (gameMode.mode === 4) {
+    startLevel4Timer();
+  } else if (gameMode.mode === 5) {
+    startLevel5Timer(ROW, COL, grid, boardGame);
+  }
+
+}
+
+function startLevel5Timer(row, col, grid, boardgame) {
+  stopLevel5Timer();
+
+  const minRow = 1, maxRow = row - 2;
+  const minCol = 1, maxCol = col - 2;
+  const randIn = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+
+  let curRow = randIn(minRow, maxRow);
+  let curCol = randIn(minCol, maxCol);
+  drawLazer(curRow, curCol, grid);
+
+  lazerTimer = setInterval(() => {
+    let r, c;
+    do {
+      r = randIn(minRow, maxRow);
+      c = randIn(minCol, maxCol);
+    } while (r === curRow && c === curCol);
+
+    curRow = r;
+    curCol = c;
+    drawLazer(curRow, curCol, grid);
+  }, 1000);
+
+  lazerStopTimer = setTimeout(() => {
+    clearInterval(lazerTimer);
+    lazerTimer = null;
+
+    lazerFireTimer = setTimeout(() => {
+
+      fireLazer(curRow, curCol, grid);
+      renderImages(grid, boardgame, gameMode.mode);
+
+      lazerNextTimer = setTimeout(() => {
+        startLevel5Timer(row, col, grid, boardgame);
+      }, 1000);
+    }, 1500);
+  }, 5000);
+}
+
+function stopLevel5Timer() {
+  clearInterval(lazerTimer);
+  clearTimeout(lazerStopTimer);
+  clearTimeout(lazerNextTimer);   // thêm mới
+  lazerTimer = lazerStopTimer = lazerNextTimer = null;
+}
+
+function startLevel4Timer() {
+  stopLevel4Timer();
+
+  renderTimer = setInterval(() => {
+    if (useTime) {
+      renderImages(grid, boardGame, gameMode.mode);
+    } else {
+      selected.forEach(p => hideImage(p.row, p.col, boardGame));
+      backState(selected);
+      renderImages(grid, boardGame);
+    }
+    useTime = !useTime;
+  }, 30000);
+}
+
+function stopLevel4Timer() {
+  clearInterval(renderTimer);
+  renderTimer = null;
+  useTime = true;
 }
 
 
+function fireLazer(row, col, grid) {
+  let arr = flatArrayLazer(row, col, grid);
+  let values = arr.map(p => grid[p.row][p.col]);
+  shuffle(values);
 
 
-
+  for (let i = 0; i < arr.length; i++) {
+    const p = arr[i];
+    grid[p.row][p.col] = values[i];
+  }
+}
 
 
 
@@ -271,10 +369,13 @@ function createBoardGame(row, col, grid, id, sizeRow, sizeCol, mode) {
 
       if (grid[i][j] !== -1) {
         create_element.className = "cell position-relative";
-        if (mode === 4) {
-          create_element.style.backgroundColor = `#FFF")`;
+        if (mode == 4) {
+          create_element.style.backgroundImage = ``;
+          create_element.style.backgroundColor = `#FFF`;
+
         } else {
           create_element.style.backgroundImage = `url("./Resources/pieces${grid[i][j]}.png")`;
+
         }
       } else if (grid[i][j] == -1) {
         create_element.className = "cell empty position-relative visible bg-transparent border-0 user-select-none";
@@ -383,6 +484,26 @@ function boardGameLevel(row, col, grid, id, sizeRow, sizeCol) {
 
 // Game Utils
 
+function flatArrayLazer(row, col, grid) {
+  let cells = [];
+
+  for (let i = 1; i < grid[0].length - 1; i++) {
+    if (grid[row][i] !== -1 && grid[row][i] !== 0) {
+      cells.push({ row, col: i })
+    }
+  }
+
+  for (let i = 1; i < grid.length - 1; i++) {
+    if (i === row) continue;
+    if (grid[i][col] !== -1 && grid[i][col] !== 0) {
+      cells.push({ row: i, col })
+    }
+  }
+
+  return cells;
+}
+
+
 function shuffle(arr) {
   for (let i = 0; i < arr.length - 1; i++) {
     let j = Math.floor(Math.random() * (arr.length - i));
@@ -458,8 +579,11 @@ function renderImages(grid, board, mode) {
       if (grid[i][j] == -1 || grid[i][j] == 0) continue;
       const cell = board.querySelector(`[data-row="${i}"][data-col="${j}"]`);
       if (mode === 4) {
-        if (cell) cell.style.backgroundImage = `#FFF`;
 
+        if (cell) {
+          cell.style.backgroundImage = ``;
+          cell.style.backgroundColor = `#FFF`;
+        }
       } else {
         if (cell) cell.style.backgroundImage = `url("./Resources/pieces${grid[i][j]}.png")`;
 
@@ -564,9 +688,28 @@ function checkWinner(grid) {
   return true;
 }
 
+// sự kiện vẽ
 
+function drawLazer(row, col, grid) {
+  document.querySelectorAll(".laser").forEach(c => c.classList.remove("laser"));
 
-// Các sự kiện liên quan đến vẽ
+  // cả hàng
+  for (let c = 1; c < grid[0].length - 1; c++) {
+    if (grid[row][c] === -1) continue;
+    document
+      .querySelector(`[data-row="${row}"][data-col="${c}"]`)
+      ?.classList.add("laser");
+  }
+
+  // cả cột
+  for (let r = 1; r < grid.length - 1; r++) {
+    if (grid[r][col] === -1) continue;
+    document
+      .querySelector(`[data-row="${r}"][data-col="${col}"]`)
+      ?.classList.add("laser");
+  }
+}
+
 
 function dirTo(x, y) {
   if (x.row > y.row) return "up";

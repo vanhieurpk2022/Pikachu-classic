@@ -5,7 +5,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="style.css" />
   <title>PiKachu cổ điển</title>
   <style>
     .cell {
@@ -108,11 +107,40 @@
       width: calc(50% + 2px);
       transform: translateY(-50%);
     }
+
+    #banner {
+      background-image: url(./Resources/bg1.png);
+      min-height: 100vh;
+      background-size: cover;
+      background-repeat: no-repeat
+    }
+
+    .laser {
+      position: relative;
+      z-index: 1;
+      background-color: rgba(255, 40, 40, 0.35);
+      outline: 3px solid #ff2d2d;
+      outline-offset: -3px;
+      box-shadow:
+        0 0 12px 2px rgba(255, 45, 45, 0.9),
+        inset 0 0 14px rgba(255, 255, 255, 0.6);
+      animation: laser-pulse 0.4s ease-in-out infinite alternate;
+    }
+
+    @keyframes laser-pulse {
+      from {
+        background-color: rgba(255, 40, 40, 0.20);
+      }
+
+      to {
+        background-color: rgba(255, 40, 40, 0.55);
+      }
+    }
   </style>
 </head>
 
 <body>
-  <main class="container-fluid d-flex justify-content-center align-items-center" style="background-image: url(./Resources/bg1.png); min-height: 100vh; background-size: cover; background-repeat: no-repeat">
+  <main id="banner" class="container-fluid d-flex justify-content-center align-items-center">
     <div id="screen-home" class="menu d-flex flex-column justify-content-center bg-white bg-opacity-75 px-5 py-3" style="width: 50vw; min-height: 60vh">
       <h2 class="text-center mb-auto display-3 fw-bold">Pikachu cổ điển</h2>
 
