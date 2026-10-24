@@ -12,18 +12,41 @@ let forward = null;
 let lazerTimer = null;
 let lazerStopTimer = null;
 let lazerNextTimer = null;
+let useTime = false;
+let busy = false;
+let bossAttackTimer = null;
+let lazerFireTimer = null;
+let damgeBoss = null;
+let hpBoss = 100;
+let COMBO_TIMES = 5000;
+let getCombo = null;
+let combo = null;
+let hpPlayer = 100;
+let rd = null;
+const BASE_DAMGE = 5;
 const getHtml = document.getElementById("result-overlay");
-
+const stage = document.getElementById('stage');
+const progress = document.querySelector(".progress");
+const bar = progress.querySelector(".progress-bar");
+const progress_boss = document.getElementById("progress-boss");
+const bar_boss = document.getElementById("bar-timer");
+const bonusMess = document.getElementById("bonus");
+const randIn = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+let BONUS_POINT = {
+  heath: randIn(0, 10),
+  dame: randIn(0, 10)
+}
 function whenGameStart() {
-  let useTime = false;
   const boardGame = document.getElementById("boardgame");
 
 
   // shuffle
   const getShuffle = document.getElementById("shuffle");
   const getHint = document.getElementById("hint");
-  const progress = document.querySelector(".progress");
-  const bar = progress.querySelector(".progress-bar");
+
+  const boss = document.getElementById('boss');
+  const sprite = document.getElementById('sprite');
+  const shakeBox = document.getElementById('screen-game');
 
 
   if (!getHtml.classList.contains("d-none")) {
@@ -36,7 +59,9 @@ function whenGameStart() {
   clearInterval(timer);
   stopLevel4Timer();
   stopLevel5Timer();
-
+  stopAllTimers();
+  hpPlayer = 100;
+  hpBoss = 100;
 
   let selected = [];
   let value = shuffle(initValue(36, 4));
@@ -101,7 +126,27 @@ function whenGameStart() {
           }
 
         }, 350);
+
+        if (gameMode.mode === 6) {
+          addCombo();
+          let dmg = BASE_DAMGE + Math.min(combo, 3);
+
+          if (Math.random() > 0.5) {
+            dmg = dmg + BONUS_POINT.dame;
+            hpPlayer = Math.min(hpPlayer + BONUS_POINT.heath, 100);
+            setProgress(hpPlayer);
+          }
+          hpBoss = hpBoss - dmg;
+          if (hpBoss < 0) {
+            stopAllTimers();
+            popUpShowWinner(gameMode.mode, true, getHtml);
+          }
+          hitBoss(sprite);
+          setProgressBoss(hpBoss);
+
+        }
       }
+
     } else {
       if (gameMode.mode === 4) {
         if (!useTime) {
@@ -120,6 +165,8 @@ function whenGameStart() {
     if (winner) {
       if (gameMode.mode === 5) {
         stopLevel5Timer();
+      } else if (gameMode.mode === 4) {
+        stopLevel4Timer();
       }
 
       clearInterval(timer);
@@ -172,63 +219,88 @@ function whenGameStart() {
   onShuffleClick = () => {
     shuffeMiddleGame(grid);
 
+
     switch (gameMode.mode) {
       case 4:
-        selected.forEach(p => { hideImage(p.row, p.col, boardGame) });
-        backState(selected);
+        if (useTime) { // đảo lại lấy mặt úp
+          selected.forEach(p => { hideImage(p.row, p.col, boardGame) });
+          backState(selected);
+          renderImages(grid, boardGame);
+        } else {
+          // Đảo lại lấy mặt bình thường
+          renderImages(grid, boardGame, gameMode.mode);
+
+        }
 
         break;
 
       default:
         backState(selected);
+        renderImages(grid, boardGame, gameMode.mode);
         break;
     }
-    renderImages(grid, boardGame, gameMode.mode);
 
 
   };
   getShuffle.addEventListener("click", onShuffleClick);
 
 
-  function setProgress(percent) {
-    bar.style.width = percent + "%";
-    progress.setAttribute("aria-valuenow", Math.round(percent));
-  }
 
-  function caculateTime(sec) {
-    const minutes = String(Math.floor(sec / 60)).padStart(2, "0");
-    const seconds = String(sec % 60).padStart(2, "0");
-    return `${minutes}:${seconds}`;
-  }
 
-  const timerPlay = 8 * 60;
+
+
+  let timerPlay = 8 * 60;
   const numberOfTime = document.getElementById("timeplay");
   let elapse = 0;
   setProgress(100);
+  if (gameMode.mode === 6) {
+    numberOfTime.textContent = "";
 
+    randomTimeAttck(shakeBox, boss, sprite, stage, grid, boardGame, gameMode.mode);
+    sprite.addEventListener('animationend', resetAnimationBoss);
 
-  timer = setInterval(() => {
-    elapse++;
-    const timePercent = 100 - (elapse / timerPlay) * 100;
-    setProgress(Math.max(timePercent, 0));
+  } else {
     numberOfTime.textContent = caculateTime(timerPlay - elapse);
-    if (elapse >= timerPlay) {
-      if (gameMode.mode === 5) {
-        stopLevel5Timer();
+    timer = setInterval(() => {
+      elapse++;
+      const timePercent = 100 - (elapse / timerPlay) * 100;
+      setProgress(Math.max(timePercent, 0));
+      numberOfTime.textContent = caculateTime(timerPlay - elapse);
+      if (elapse >= timerPlay) {
+        if (gameMode.mode === 5) {
+          stopLevel5Timer();
+        }
+        popUpShowWinner(gameMode.mode, false, getHtml);
       }
-      popUpShowWinner(gameMode.mode, false, getHtml);
-    }
 
+    }, 1000);
+  }
 
-  }, 1000);
 
 
   if (gameMode.mode === 4) {
-    startLevel4Timer();
+    startLevel4Timer(grid, boardGame, gameMode.mode, selected);
   } else if (gameMode.mode === 5) {
     startLevel5Timer(ROW, COL, grid, boardGame);
   }
 
+}
+
+// End Function WhenStart();
+
+function caculateTime(sec) {
+  const minutes = String(Math.floor(sec / 60)).padStart(2, "0");
+  const seconds = String(sec % 60).padStart(2, "0");
+  return `${minutes}:${seconds}`;
+}
+
+function setProgress(percent) {
+  bar.style.width = percent + "%";
+  progress.setAttribute("aria-valuenow", Math.round(percent));
+}
+function setProgressBoss(percent) {
+  bar_boss.style.width = percent + "%";
+  progress_boss.setAttribute("aria-valuenow", Math.round(percent));
 }
 
 function startLevel5Timer(row, col, grid, boardgame) {
@@ -236,7 +308,6 @@ function startLevel5Timer(row, col, grid, boardgame) {
 
   const minRow = 1, maxRow = row - 2;
   const minCol = 1, maxCol = col - 2;
-  const randIn = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
 
   let curRow = randIn(minRow, maxRow);
   let curCol = randIn(minCol, maxCol);
@@ -277,25 +348,27 @@ function stopLevel5Timer() {
   lazerTimer = lazerStopTimer = lazerNextTimer = null;
 }
 
-function startLevel4Timer() {
+function startLevel4Timer(grid, boardGame, mode, selected) {
   stopLevel4Timer();
 
   renderTimer = setInterval(() => {
     if (useTime) {
-      renderImages(grid, boardGame, gameMode.mode);
+      // úp
+      renderImages(grid, boardGame, mode);
     } else {
+      // Đang mặt bình thường
       selected.forEach(p => hideImage(p.row, p.col, boardGame));
       backState(selected);
       renderImages(grid, boardGame);
     }
     useTime = !useTime;
-  }, 30000);
+  }, 5000);
 }
 
 function stopLevel4Timer() {
   clearInterval(renderTimer);
   renderTimer = null;
-  useTime = true;
+  useTime = false;
 }
 
 
@@ -324,10 +397,19 @@ function showScreen(id, mode) {
   if (mode !== undefined) {
     gameMode.mode = Number(mode);
     whenGameStart();
+  } else {
+    stopAllTimers()
   }
 
+  // ẩn đi kết quả khi chuyển màn
   if (!getHtml.classList.contains("d-none")) {
     getHtml.classList.add("d-none");
+  }
+
+  if (Number(mode) === 6) {
+    showBoss(stage)
+  } else {
+    hideBoss(stage);
   }
 }
 
@@ -576,17 +658,28 @@ function shuffeMiddleGame(grid) {
 function renderImages(grid, board, mode) {
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid[i].length; j++) {
-      if (grid[i][j] == -1 || grid[i][j] == 0) continue;
+      if (grid[i][j] === -1) continue;
+
       const cell = board.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+      if (!cell) continue;
+
+      // ô trống
+      if (grid[i][j] === 0) {
+        cell.style.backgroundImage = "";
+        cell.classList.add("empty", "bg-transparent", "border-0");
+        cell.disabled = true;
+        continue;
+      }
+
+      // ô có block -> khôi phục trạng thái bình thường
+      cell.classList.remove("empty", "bg-transparent", "border-0");
+      cell.disabled = false;
+
       if (mode === 4) {
-
-        if (cell) {
-          cell.style.backgroundImage = ``;
-          cell.style.backgroundColor = `#FFF`;
-        }
+        cell.style.backgroundImage = "";
+        cell.style.backgroundColor = "#FFF";
       } else {
-        if (cell) cell.style.backgroundImage = `url("./Resources/pieces${grid[i][j]}.png")`;
-
+        cell.style.backgroundImage = `url("./Resources/pieces${grid[i][j]}.png")`;
       }
     }
   }
@@ -881,4 +974,145 @@ function aroundEmpty(x, y, grid, value, mode) {
     return grid[x][y] == 0 || grid[x][y] == value;
   }
   return grid[x][y] == 0 || grid[x][y] == -1 || grid[x][y] == value;
+}
+
+
+// Boss Action
+function resetAnimationBoss(e) {
+
+  if (e.animationName === 'atk') {
+
+    boss.classList.remove('attack');
+
+    sprite.classList.remove('attack');
+
+    stage.classList.remove('attack');
+
+    busy = false;
+  }
+
+  if (e.animationName === 'hit') {
+    sprite.classList.remove('hit');
+  }
+}
+function stopAllTimers() {
+  clearInterval(timer);
+  stopLevel4Timer();
+  stopLevel5Timer();
+  stopBoss();
+  resetCombo();
+}
+function stopBoss() {
+  clearTimeout(bossAttackTimer);
+  busy = false;
+  bossAttackTimer = null;
+}
+
+function randomTimeAttck(shakeBox, boss, sprite, stage, grid, board, mode) {
+  const delay = 5000 + Math.random() * 5000;
+
+  bossAttackTimer = setTimeout(() => {
+    bossAttack(shakeBox, boss, sprite, stage);
+
+    // tấn công xong các block bị rớt xuống
+
+    const getValues = randIn(1, 36);
+    dropBlock(getValues, grid);
+    checkShuffle(grid, mode);
+    renderImages(grid, board, mode);
+    hpPlayer = hpPlayer - 8;
+    setProgress(hpPlayer);
+    if (hpPlayer <= 0) {
+      stopAllTimers();
+      popUpShowWinner(mode, false, getHtml);
+      return;
+    }
+    randomTimeAttck(shakeBox, boss, sprite, stage, grid, board, mode);
+  }, delay)
+
+}
+
+function dropBlock(rd, grid) {
+  const values = [];
+  for (let i = 1; i < grid.length - 1; i++) {
+    for (let j = 1; j < grid[0].length - 1; j++) {
+      if (grid[i][j] === 0) {
+        values.push({ row: i, col: j });
+      }
+    }
+  }
+  if (values.length < 2) return;
+  shuffle(values) // trùng ô roll lại
+  const [c1, c2] = values;
+  grid[c1.row][c1.col] = rd;
+  grid[c2.row][c2.col] = rd;
+}
+
+function bossAttack(shakeBox, boss, sprite, stage) {
+  if (busy) return;
+  busy = true;
+
+  boss.classList.add('attack');     // dừng animation thở
+  sprite.classList.add('attack');   // chạy sprite tấn công
+  stage.classList.add('attack');    // stage rung
+  shake(shakeBox);
+}
+function hitBoss(sprite) {
+  if (hpBoss < 0) return;
+  sprite.classList.remove('hit');
+  void sprite.offsetWidth;
+  sprite.classList.add('hit');
+}
+
+function hideBoss(stage) {
+  if (!stage.classList.contains("d-none")) {
+    stage.classList.add('d-none');
+  }
+}
+function showBoss(stage) {
+  stage.classList.remove("d-none")
+}
+
+/*
+   * Rung một element
+   */
+function shake(el) {
+
+  // Xóa animation cũ
+  el.classList.remove('shake');
+
+  // Ép browser reset animation
+  void el.offsetWidth;
+
+  // Chạy animation
+  el.classList.add('shake');
+
+  // Animation kết thúc thì xóa class
+  el.addEventListener(
+    'animationend',
+    e => {
+
+      if (e.target === el) {
+        el.classList.remove('shake');
+      }
+
+    },
+    { once: true }
+  );
+}
+
+function addCombo() {
+  combo++;
+  clearInterval(getCombo);
+  getCombo = setInterval(() => {
+    combo = 0;
+  }, COMBO_TIMES);
+}
+
+function resetCombo() {
+  clearInterval(getCombo);
+  combo = 0;
+  getCombo = null;
+  hpBoss = 100;
+  setProgressBoss(hpBoss);
 }
