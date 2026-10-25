@@ -362,7 +362,7 @@ function startLevel4Timer(grid, boardGame, mode, selected) {
       renderImages(grid, boardGame);
     }
     useTime = !useTime;
-  }, 5000);
+  }, 30000);
 }
 
 function stopLevel4Timer() {
